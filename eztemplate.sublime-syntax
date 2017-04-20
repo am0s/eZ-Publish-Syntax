@@ -1,0 +1,214 @@
+%YAML 1.2
+---
+name: eZ template
+file_extensions: [tpl]
+scope: source.ezt
+
+contexts:
+  main:
+    - match: ''
+      push: 'scope:text.html.basic'
+      with_prototype:
+        - match: '(\{)\s*(literal)\s*(})'
+          scope: punctuation.definition.tag.literal.ezt
+          captures:
+            1: punctuation.definition.tag.begin.ezt
+            2: keyword.control.ezt
+            3: punctuation.definition.tag.end.ezt
+          # pop: true
+        - match: '(\{)\s*(/\s*literal)\s*(})'
+          scope: punctuation.definition.tag.literal.ezt
+          captures:
+            1: punctuation.definition.tag.begin.ezt
+            2: keyword.control.ezt
+            3: punctuation.definition.tag.end.ezt
+          # pop: true
+        - match: '(\{)(\*)'
+          captures:
+            0: punctuation.definition.comment.ezt
+          push:
+            - meta_scope: comment.block.ezt
+            - match: '\*\}'
+              captures:
+                0: punctuation.definition.comment.ezt
+              pop: true
+        - match: "{"
+          scope: punctuation.definition.tag.begin.ezt
+          push: language
+
+  language:
+  #   - match: "\b+"
+    - match: "}"
+      scope: punctuation.definition.tag.end.ezt
+      pop: true
+    # Control structures with new-style arguments
+    - match: \b(if|elseif|foreach|while)\b
+      scope: keyword.control.ezt
+    # Control structures with no arguments
+    - match: '\b(else|do|break|continue|skip|delimiter)\s*(})'
+      captures:
+        1: keyword.control.ezt
+        2: punctuation.definition.tag.end.ezt
+      pop: true
+    - match: \b(def|undef)\b
+      scope: keyword.control.ezt
+    - match: \b(default|set-block|sequence|set)\b
+      scope: entity.name.function
+    # Deprecated structures, old-style
+    - match: \b(let)\b
+      scope: entity.name.function
+    # TODO: for
+    # Old-style control structure
+    - match: \b(switch|case)\b
+      scope: keyword.control.ezt
+    # builtin functions
+    - match: \b(include|cache-block)\b
+      scope: entity.name.function
+    # Terminate control structures with no arguments
+    - match: '(\/\s*(?:if|elseif|foreach|do|delimiter|default|set-block|sequence|set|let|switch|case))\s*(})'
+      captures:
+        1: keyword.control.ezt
+        2: punctuation.definition.tag.end.ezt
+      pop: true
+    # Arguments to certain template functions
+    - match: '([a-zA-Z][a-zA-Z0-9-_]*)\s*(=)'
+      captures:
+        1: meta.function.arguments.ezt
+        2: keyword.operator.assignment.ezt
+    - include: expr
+
+  # def_control:
+  #   - match: '}'
+  #     scope: punctuation.definition.tag.end.ezt
+  #     push: 'scope:text.html.basic'
+  #     with_prototype:
+  #       - match: "{"
+  #         scope: punctuation.definition.tag.begin.ezt
+  #         push: if_control
+  #   - include: expr
+
+  expr_out:
+    - include: expr
+
+  expr:
+    - include: expr_common
+    - match: '([a-zA-Z][a-zA-Z0-9_-]*)'
+      scope: string.unquoted.ezt
+
+  expr_property:
+    - include: expr_common
+    - match: '([a-zA-Z][a-zA-Z0-9_-]*)'
+      scope: variable.other.property.ezt
+
+  expr_common:
+    - match: '\s+'
+    - include: string-double-quoted
+    - include: string-single-quoted
+    - include: number
+    - match: '(\$)([a-zA-Z][a-zA-Z0-9_-]*)'
+      scope: variable.other.ezt
+      captures:
+        1: punctuation.definition.variable.ezt
+        2: keyword.operator.class.ezt
+      push:
+        - match: '\s+'
+        - match: '\.'
+          scope: keyword.operator.array.ezt
+          push:
+            - match: '([a-zA-Z][a-zA-Z0-9_]*)|([0-9]+)'
+              scope: variable.other.property.ezt
+              pop: true
+        - match: '\['
+          scope: punctuation.section.array.begin.ezt
+          push:
+            - match: ']'
+              scope: punctuation.section.array.end.ezt
+              pop: true
+            - include: expr_property
+        - match: ''
+          pop: true
+    - match: '(\|)\s*(?=[a-zA-Z][a-zA-Z0-9_]*\()'
+      captures:
+        1: keyword.operator.pipe.ezt
+        3: punctuation.definition.parameters.begin.ezt
+      push:
+        - include: function-call
+        - match: '\s*\)'
+          scope: punctuation.definition.parameters.end.ezt
+          pop: true
+    - match: '(\|)\s*(?=[a-zA-Z][a-zA-Z0-9_]*)'
+      captures:
+        1: keyword.operator.pipe.ezt
+      push:
+        - include: function-call-noargs
+        - match: '(?=\b)'
+          scope: punctuation.definition.parameters.end.ezt
+          pop: true
+    - match: '(?=[a-zA-Z][a-zA-Z0-9_]*\()'
+      scope: meta.function-call.ezt
+      captures:
+        2: punctuation.definition.parameters.begin.ezt
+      push:
+        - include: function-call
+        - match: '\s*\)'
+          scope: punctuation.definition.parameters.end.ezt
+          pop: true
+    # - match: ""
+    #   pop: true
+
+  support:
+    - match: '(?i)\b(is_set)\b'
+      scope: support.function.construct.ezt
+    - match: '(?i)\b(and|or|first_set|choose|cond|eq|ne|false|true|ge|gt|le|lt|not|null)\b'
+      scope: keyword.operator.function.ezt
+
+  function-call-noargs:
+    - include: support
+    - match: '(?i)[a-z][a-z0-9_]*\b'
+      scope: meta.function-call.ezt
+    - match: '(?=\b)'
+      pop: true
+
+  function-call:
+    - include: support
+    - match: '(?i)[a-z][a-z0-9_]*(?=\s*(\())'
+      scope: meta.function-call.ezt
+    - match: '\s*(\()'
+      scope: punctuation.definition.parameters.begin.ezt
+      push:
+        - match: ','
+        - match: '(?=\s*\))'
+          pop: true
+        - include: expr
+    - match: '(?=\s*\()'
+      pop: true
+
+  string-double-quoted:
+    - match: '"'
+      scope: punctuation.definition.string.begin.ezt
+      push:
+        - meta_scope: string.quoted.double.ezt
+        - meta_content_scope: meta.string-contents.quoted.double.ezt
+        - match: '\\[\\'']'
+          scope: constant.character.escape.ezt
+        - match: '"'
+          scope: punctuation.definition.string.end.ezt
+          pop: true
+
+  string-single-quoted:
+    - match: "'"
+      scope: punctuation.definition.string.begin.ezt
+      push:
+        - meta_scope: string.quoted.single.ezt
+        - meta_content_scope: meta.string-contents.quoted.single.ezt
+        - match: '\\[\\'']'
+          scope: constant.character.escape.ezt
+        - match: "'"
+          scope: punctuation.definition.string.end.ezt
+          pop: true
+
+  number:
+    - match: '\b(-?)(([0-9]+\.?[0-9]*)|(\.[0-9]+))\b'
+      scope: constant.numeric.ezt
+
+#([a-zA-Z][a-zA-Z0-9_]+)\b[(]
