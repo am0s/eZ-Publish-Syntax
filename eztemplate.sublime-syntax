@@ -2,7 +2,7 @@
 ---
 name: eZ template
 file_extensions: [tpl]
-scope: source.ezt
+scope: source.eztpl
 
 contexts:
   main:
