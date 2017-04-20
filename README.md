@@ -26,25 +26,29 @@ or per project.
 The global rule is added by adding the file `ApplySyntax.sublime-settings` to
 `Packages/User` and adding the content:
 
-    {
-        "syntaxes": [
-            {
-                "syntax": "ezp/eztemplate",
-                "rules": [
-                    {"file_path": ".*[\\\\/]design[\\\\/](admin|base|plain|standard)[\\\\/].*\\.(tpl|html)$"},
-                    {"file_path": ".*[\\\\/]extension[\\\\/][^\\\\/]+[\\\\/]design[\\\\/][^\\\\/]+[\\\\/].*\\.(tpl|html)$"}
-                ]
-            }
-        ]
-    }
+```json
+{
+    "syntaxes": [
+        {
+            "syntax": "ezp/eztemplate",
+            "rules": [
+                {"file_path": ".*[\\\\/]design[\\\\/](admin|base|plain|standard)[\\\\/].*\\.(tpl|html)$"},
+                {"file_path": ".*[\\\\/]extension[\\\\/][^\\\\/]+[\\\\/]design[\\\\/][^\\\\/]+[\\\\/].*\\.(tpl|html)$"}
+            ]
+        }
+    ]
+}
+```
 
 To instead set it per project edit the project (`Project / Edit Project`) and add:
 
-    "settings": {
-        "project_syntaxes": [
-            {
-                "syntax": "ezp/eztemplate",
-                "extensions": ["tpl"]
-            }
-        ]
-    }
+```json
+"settings": {
+    "project_syntaxes": [
+        {
+            "syntax": "ezp/eztemplate",
+            "extensions": ["tpl"]
+        }
+    ]
+}
+```
