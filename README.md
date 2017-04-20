@@ -1,4 +1,4 @@
-eZ Publish ST2/3 Package
+eZ Publish ST3 Package
 =====
 
 This package offers:
@@ -6,7 +6,7 @@ This package offers:
 * Syntax highlighting for .tpl (eZ Publish Template Language) and .ini (eZ INI) files
 * Snippets
 
-Compatible with Sublime Text 2 & 3
+Compatible with Sublime Text 3
 
 # Installation
 
